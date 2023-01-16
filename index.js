@@ -6,9 +6,10 @@ const web3 = new Web3(
 
 
 async function getlogsOfTxn(tx) {
-    let result2 = await web3.eth.getTransactionReceipt(tx)
+    let result = await web3.eth.getTransactionReceipt(tx)
 
-    return result2;
+    // return result2;
+    filterTxn(result)
 }
 
 function filterTxn(txnObj) {
@@ -24,9 +25,8 @@ function filterTxn(txnObj) {
 }
 
 function transactionType(log) {
-    let string = ""
 
-
+    // hash of events 
     let transferEvent = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
     let approvalEvent = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925";
     let depositEvent = "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c";
@@ -265,11 +265,9 @@ function swapEventFn(log) {
 //     );
 // }
 
-async function main() {
-    const data = await getlogsOfTxn('0x6a615933a428ff2db7ae500c5f4de4d82f82318b398b4f41a7b72eeab843f1a9')
-    filterTxn(data)
-}
 // 0x606bc694c3599fafe05d00497a779adb158cb9d7612ca7bd17529ca18aa4f2b8
-main()
+
+// const data = getlogsOfTxn('0x0ee78dcfc4afcff0109cd899a176c1daa733afedac06db312ebe37995bf3a80d')
 
 
+module.exports = {getlogsOfTxn, filterTxn, transactionType}
