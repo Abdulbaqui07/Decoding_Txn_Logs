@@ -10,27 +10,6 @@ const contractABI = require("./abi.json");
 
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-// web3.eth.getBlockNumber().then((blockNumber) => {
-//   console.log("blockNumber", blockNumber);
-//   contract.getPastEvents(
-//     "allEvents",
-//     {
-//       fromBlock: blockNumber - 100,
-//       toBlock: "latest",
-//     },
-//     (error, events) => {
-//       if (error) {
-//         console.log(error);
-//         return;
-//       }
-//       events.forEach((event) => {
-//         console.log(event)
-//         filterTxn(event)
-//       });
-//     }
-//   );
-// });
-
 web3.eth.getBlockNumber().then((blockNumber) => {
     console.log("blockNumber", blockNumber);
     contract.getPastEvents(
