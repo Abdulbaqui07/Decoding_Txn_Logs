@@ -1,5 +1,7 @@
 const Web3 = require('web3');
 
+const contractABI = require('./contractABI.json');
+
 const web3 = new Web3(
     "https://mainnet.infura.io/v3/a6cb9ec392304a8990d3dbd8502adbf6"
 );
@@ -9,7 +11,9 @@ async function getlogsOfTxn(tx) {
     let result = await web3.eth.getTransactionReceipt(tx)
 
     // return result2;
-    filterTxn(result)
+    let decodeData = filterTxn(result)
+
+    return decodeData
 }
 
 function filterTxn(txnObj) {
@@ -21,7 +25,9 @@ function filterTxn(txnObj) {
         result.push(txtype)
     })
 
-    console.log(result, result.length)
+    // console.log(result, result.length)
+
+    return result
 }
 
 function transactionType(log) {
@@ -87,7 +93,7 @@ function transferEventFn(log) {
     // console.log(res)
 
     return {
-        "contracts-address": log.address,
+        "contract-address": log.address,
         "transaction-type": "Transfer",
         "value": {
             "from": res.from,
@@ -127,7 +133,7 @@ function approvalEventFn(log) {
     );
 
     return {
-        "contracts-address": log.address,
+        "contract-address": log.address,
         "transaction-type": "Approve",
         "value": {
             "owner": res.owner,
@@ -160,7 +166,7 @@ function syncEventFn(log) {
     );
 
     return {
-        "contracts-address": log.address,
+        "contract-address": log.address,
         "transaction-type": "Sync",
         "value": {
             "reserve0": res.reserve0,
@@ -194,7 +200,7 @@ function withdrawelEventFn(log) {
     );
 
     return {
-        "contracts-address": log.address,
+        "contract-address": log.address,
         "transaction-type": "Withdrawal",
         "value": {
             "src": res.src,
@@ -244,7 +250,7 @@ function swapEventFn(log) {
     );
 
     return {
-        "contracts-address": log.address,
+        "contract-address": log.address,
         "transaction-type": "Swap",
         "value": {
             "sender": res.sender,
@@ -257,17 +263,46 @@ function swapEventFn(log) {
     }
 }
 
-// function unknown(log) {
-//     let res = web3.eth.abi.decodeLog(
+async function getContractNameAndSymbol(address) {
+    const contract = new web3.eth.Contract(contractABI, address);
 
-//         log["data"],
-//         topicArr
-//     );
-// }
+    let name = await contract.methods.name().call()
+    let symbol = await contract.methods.symbol().call()
 
-// 0x606bc694c3599fafe05d00497a779adb158cb9d7612ca7bd17529ca18aa4f2b8
+    // console.log("name "+name);
+    // console.log("symbol "+symbol);
 
-// const data = getlogsOfTxn('0x0ee78dcfc4afcff0109cd899a176c1daa733afedac06db312ebe37995bf3a80d')
+    return {"name": name, "symbol": symbol}
+}
 
 
-module.exports = {getlogsOfTxn, filterTxn, transactionType}
+async function setContractName(hash){
+    let result = []
+    let decodeData = await getlogsOfTxn(hash)
+   
+    
+    
+    for(let i = 0; i < decodeData.length; i++){
+
+        let contractData = await getContractNameAndSymbol(decodeData[i]['contract-address']);
+
+        const obj = {
+            'contract-address': decodeData[i]['contract-address'],
+            'contract-name': contractData.name,
+            'contract-symbol': contractData.symbol,
+            'transaction-type': decodeData[i]['transaction-type'],
+            'value': decodeData[i].value
+        }
+        result.push(obj)
+    }
+
+    return result;
+}
+
+setContractName('0x24c1b2b6a4d1bc7f41dbba71a584ac2a4f123b32686364b9fc111b9b207215e2').then((result) => {
+    console.log(result)
+    console.log("log count ", result.length)
+})
+
+
+module.exports = {getlogsOfTxn, filterTxn, transactionType, setContractName}
